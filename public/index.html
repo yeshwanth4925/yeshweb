@@ -1,10 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Shooter Game</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multiplayer Shooter Prototype</title>
+  <style>
+    :root {
+      --bg: #0f1226; --panel: #14183a; --border: #2a2f5f; --text: #e6e8ff;
+      --accent: #6c7bff; --danger: #ff5a7a; --ok: #3de0a1; --warn: #ffd166;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); background: var(--panel); position: sticky; top:0; z-index:10; }
+    h1 { font-size:16px; margin:0; letter-spacing:0.5px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { border:0; background: linear-gradient(180deg, var(--accent), #4f5dff); color:#fff; font-weight:700; padding:8px 12px; border-radius:10px; cursor:pointer; }
+    .chip { background:#1b1f3f; border:1px solid var(--border); padding:6px 10px; border-radius:10px; }
+    .wrap { display:grid; grid-template-columns: 320px 1fr; gap:12px; padding:12px; }
+    .panel { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
+    canvas { width:100%; height:70vh; background: #0a0d1d; border:1px solid var(--border); border-radius:12px; display:block; }
+    .list { display:grid; gap:8px; }
+    .select { width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:#0e1130; color:var(--text); }
+    .grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; }
+    .dress { background:#0e1130; border:1px solid var(--border); border-radius:10px; padding:8px; text-align:center; cursor:pointer; }
+    .dress.active { outline:2px solid var(--accent); }
+    .note { font-size:12px; opacity:0.8; }
+    .healthbar { height:8px; background:#1b1f3f; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+    .healthbar > div { height:100%; background: linear-gradient(90deg, #3de0a1, #6c7bff); width:100%; }
+  </style>
 </head>
 <body>
-  <h1>Welcome to the Shooter Game</h1>
-  <script src="client.js"></script>
+  <header>
+    <h1>Multiplayer Shooter Prototype</h1>
+    <div class="row">
+      <div class="chip">Room: <span id="roomName">default</span></div>
+      <div class="chip">Players: <span id="playerCount">1</span></div>
+      <button id="copyLink" class="btn">Copy join link</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Left: Lobby & Loadout -->
+    <div class="panel">
+      <h2 style="margin:0 0 8px;">Lobby</h2>
+      <div class="list">
+        <label>Mode</label>
+        <select id="mode" class="select">
+          <option value="clash_squad">Clash Squad (4v4 rounds)</option>
+          <option value="battle_royale">Battle Royale (FFA)</option>
+        </select>
+
+        <label>Character</label>
+        <select id="character" class="select">
+          <option value="sonic">Sonic — damage aura</option>
+          <option value="wukong">Wukong — 15s invincibility</option>
+          <option value="blaze">Blaze — faster fire rate</option>
+          <option value="aegis">Aegis — auto-shield at low HP</option>
+        </select>
+
+        <label>Primary gun</label>
+        <select id="gun" class="select">
+          <option value="ar">Assault Rifle (balanced)</option>
+          <option value="smg">SMG (fast, short range)</option>
+          <option value="shotgun">Shotgun (burst, very short range)</option>
+          <option value="sniper">Sniper (slow, high damage)</option>
+        </select>
+
+        <label>Dress presets (50 options)</label>
+        <div id="dressGrid" class="grid"></div>
+
+        <button id="readyBtn" class="btn">Ready</button>
+        <div class="note">WASD to move — Left click shoot — Right click blast. Space: activate character power.</div>
+      </div>
+    </div>
+
+    <!-- Right: Game -->
+    <div class="panel">
+      <canvas id="game" width="960" height="540"></canvas>
+      <div class="row" style="margin-top:8px">
+        <div class="chip">Kills: <span id="kills">0</span></div>
+        <div class="chip">Deaths: <span id="deaths">0</span></div>
+        <div class="chip">Ping: <span id="ping">—</span></div>
+      </div>
+      <div class="healthbar" style="margin-top:8px"><div id="hpBar"></div></div>
+    </div>
+  </div>
+
+  <!-- Game logic -->
+  <script>
+    // This script contains all the networking, lobby, and gameplay logic
+    // (movement, shooting, powers, etc.)
+    // Paste the full JavaScript game code I provided earlier here.
+  </script>
 </body>
 </html>
