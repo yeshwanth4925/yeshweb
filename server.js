@@ -1,92 +1,64 @@
-// server.js
 const http = require('http');
-const path = require('path');
 const fs = require('fs');
-const WebSocket = require('ws');
-const url = require('url');
-
-const PORT = process.env.PORT || 8080;
-const PUBLIC_DIR = path.join(__dirname, 'public');
+const path = require('path');
 
 const server = http.createServer((req, res) => {
-  const parsed = url.parse(req.url);
-  let pathname = parsed.pathname;
+    // Parse the request URL
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const filePath = path.join(__dirname, url.pathname);
 
-  // Serve index.html for any /room/* path
-  if (pathname.startsWith('/room/')) {
-    pathname = '/index.html';
-  }
-
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
-
-  if (!filePath.startsWith(PUBLIC_DIR)) {
-    res.writeHead(403);
-    res.end('Forbidden');
-    return;
-  }
-
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404);
-      res.end('Not found');
-      return;
+    // Set the correct MIME type for files
+    const extname = String(path.extname(filePath)).toLowerCase();
+    let contentType = 'text/plain';
+    switch (extname) {
+        case '.html':
+            contentType = 'text/html';
+            break;
+        case '.js':
+            contentType = 'application/javascript';
+            break;
+        case '.css':
+            contentType = 'text/css';
+            break;
+        case '.png':
+            contentType = 'image/png';
+            break;
+        case '.jpg':
+            contentType = 'image/jpeg';
+            break;
+        case '.gif':
+            contentType = 'image/gif';
+            break;
+        case '.svg':
+            contentType = 'image/svg+xml';
+            break;
+        case '.ico':
+            contentType = 'image/x-icon';
+            break;
     }
-    const ext = path.extname(filePath);
-    const type =
-      ext === '.html' ? 'text/html' :
-      ext === '.js'   ? 'text/javascript' :
-      ext === '.css'  ? 'text/css' :
-      'application/octet-stream';
-    res.writeHead(200, { 'Content-Type': type });
-    res.end(data);
-  });
+
+    // Security improvements
+    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self';");
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // Serve the file
+    fs.readFile(filePath, (error, content) => {
+        if (error) {
+            if (error.code == 'ENOENT') {
+                res.writeHead(404);
+                res.end('404 Not Found');
+            } else {
+                res.writeHead(500);
+                res.end('500 Internal Server Error');
+            }
+        } else {
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content, 'utf-8');
+        }
+    });
 });
 
-const wss = new WebSocket.Server({ server });
-
-const rooms = new Map();
-
-function getRoomIdFromReq(req) {
-  try {
-    const u = url.parse(req.url, true);
-    return u.query.room || 'default';
-  } catch {
-    return 'default';
-  }
-}
-
-function broadcast(roomId, data, except) {
-  const set = rooms.get(roomId);
-  if (!set) return;
-  for (const client of set) {
-    if (client !== except && client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  }
-}
-
-wss.on('connection', (ws, req) => {
-  const roomId = getRoomIdFromReq(req);
-  if (!rooms.has(roomId)) rooms.set(roomId, new Set());
-  rooms.get(roomId).add(ws);
-
-  ws.id = Math.random().toString(36).slice(2, 9);
-
-  broadcast(roomId, JSON.stringify({ type: 'system', event: 'join', id: ws.id }), ws);
-
-  ws.on('message', (msg) => {
-    broadcast(roomId, msg, ws);
-  });
-
-  ws.on('close', () => {
-    const set = rooms.get(roomId);
-    if (set) set.delete(ws);
-    broadcast(roomId, JSON.stringify({ type: 'system', event: 'leave', id: ws.id }));
-    if (set && set.size === 0) rooms.delete(roomId);
-  });
-});
-
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Join a room via: http://localhost:${PORT}/room/my-match`);
+    console.log(`Server running on port ${PORT}`);
 });
